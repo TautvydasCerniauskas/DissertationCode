@@ -128,3 +128,46 @@ def create_tfrecords_file(input_filename, output_filename, example_fn):
     writer.close()
     print("Wrote to {}".format(output_filename))
 
+
+def write_vocabulary(vocab_processor, outfile):
+    """
+    Writes the vocabulary to a file. one word per line.
+    """
+    vocab_size = len(vocab_processor.vocabulary_)
+    with open(outfile, "w") as vocabfile:
+        for id in range(vocab_size):
+            word = vocab_processor.vocabulary_._reverse_mapping[id]
+            vocabfile.write(word + "\n")
+    print("Saved vocabulary to {}".format(outfile))
+
+if __name__ == "__main__":
+    print("Creating vocabulary...")
+    input_iter = create_csv_iter(TRAIN_PATH)
+    input_iter = (x[o] + " " + x[1] for x in input_iter)
+    vocab = create_vocab(input_iter, min_frequency=FLAGS.min_word_frequency)
+    print("Total vocabulary size: {}".format(len(vocab.vocabulary_)))
+
+    # Create vocabulary.txt file
+    write_vocabulary(vocab, os.path.join(FLAGS.output_dir, "vocabulary.txt"))
+
+    # Save vocabulary processor
+    vocab.save(os.path.join(FLAGS.output_dir, "vocab_processor.bin"))
+
+    # Create validation.tfrecords
+    create_tfrecords_file(
+        input_filename=VALIDATION_PATH,
+        output_filename=os.path.join(FLAGS.output_dir, "validation.tfrecords"),
+        example_fn(functools.partial(create_example_test, vocab=vocab))
+
+    # Create validation.tfrecords
+    create_tfrecords_file(
+        input_filename=TEST_PATH,
+        output_filename=os.path.join(FLAGS.output_dir, "test.tfrecords"),
+        example_fn(functools.partial(create_example_test, vocab=vocab))
+
+    # Create validation.tfrecords
+    create_tfrecords_file(
+        input_filename=TRAIN_PATH,
+        output_filename=os.path.join(FLAGS.output_dir, "train.tfrecords"),
+        example_fn(functools.partial(create_example_train, vocab=vocab))
+
