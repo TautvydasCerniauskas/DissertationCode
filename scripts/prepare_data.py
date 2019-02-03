@@ -57,4 +57,74 @@ def transform_sentence(sequence, vocab_processor):
     return next(vocab_processor.transform([sequence])).tolist()
 
 def create_text_sequence_feature(fl, sentence, sentence_len, vocab):
+    """
+    Writes a sentece to FeatureList protocol buffer
+    """
+    sentence_trasformed = transform_sentence(sentece, vocab)
+    for word_id in sentence_trasformed:
+        fl.feature.add().int64_list.value.extend([word_id])
+    return fl
+
+def create_example_train(row, vocab):
+    """
+    Creates a training example for the Ubuntu Dialog Corpus dataset.
+    Returns a tensorflow. Example Protocol Buffer object.
+    """
+
+    context, utterance, label = row
+    context_transformed = transform_sentence(context, vocab)
+    utterance_transformed = transform_sentence(utterance, vocab)
+    context_len = len(next(vocab._tokenizer([context])))
+    utterance_len = len(next(vocab._tokenizer([utterance])))
+    label = int(float(label))
+
+    # New Example 
+    example = tf.train.Example()
+    example.features.feature["context"].int64_list.value.extend(context_transformed)
+    example.features.feature["utterance"].int64_list.value.extend(utterance_transformed)
+    example.features.feature["context_len"].int64_list.value.extend([context_len])
+    example.features.feature["utterance_len"].int64_list.value.extend([utterance_len])
+    example.features.feature["label"].int64_list.value.extend([label])
+    return example
+
+
+def create_example_test(row, vocab):
+    """
+    Creates a test/validation example for the Ubuntu Dialog Corpus dataset.
+    Returns a tensorflow. Example Protocol Buffer Object
+    """
+    context, utterance = row[:2]
+    distractions = row[2:]
+    context_len = len(next(vocab._tokenizer([context])))
+    utterance_len = len(next(vocab._tokenizer([utterance])))
+    context_transformed = transform_sentence(context, vocab)
+    utterance_transformed = transform_sentence(utterance, vocab)
+
+    # New Example 
+    example = tf.train.Example()
+    example.features.feature["context"].int64_list.value.extend(context_transformed)
+    example.features.feature["utterance"].int64_list.value.extend(utterance_transformed)
+    example.features.feature["context_len"].int64_list.value.extend([context_len])
+    example.features.feature["utterance_len"].int64_list.value.extend([utterance_len])
+
+    # Distraction sequences 
+    for i, distractor in enumerate(distractions):
+        dis_key = "distractor_{}".format(i)
+        dis_len_key = "distractor_{}".format(i)
+        # Distractor Length feature
+        dis_len = len(next(vocab._tokenizer([distractor])))
+        example.features.feature[dis_len_key].int64_list.value.extend(dis_transformed)
+    return example
+
+def create_tfrecords_file(input_filename, output_filename, example_fn):
+    """
+    Creates a TFRecords file for the given input data and example transformation function
+    """
+    writer = tf.python_io.TFRecordsWriter(output_filename)
+    print("Creating TFRecords file at {}...". format(output_filename))
+    for i, row in enumerate(create_csv_iter(input_filename)):
+        x = example_fn(row)
+        writer.write(x.SerializeToString())
+    writer.close()
+    print("Wrote to {}".format(output_filename))
 
