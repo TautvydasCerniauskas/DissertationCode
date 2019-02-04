@@ -11,16 +11,12 @@ def get_embeddigs(hparams):
         glove_vectors, glove_dict = helpers.load_glove_vectors(hparams.glove_path, vocab=set(vocab_array))
         initializer = helpers.build_initial_embedding_matrix(vocab_dict, glove_dict, glove_vectors, hparams.embedding_dim)
 
-        return tf.get_variable(
-            "word_embeddings",
-            initializer=initializer)
     else:
         tf.logging.info("No glove/vocab path specified, starting with random embeddings")
         initializer = tf.random_uniform_initializer(-0.25, 0.25)
-        return tf.get_variable(
-            "word_embeddings",
-            shape=[hparams.vocab_size, hparams.embedding_dim],
-            initializer=initializer)
+    return tf.get_variable(
+        "word_embeddings",
+        initializer=initializer)
 
 
 def dual_encoder_model(

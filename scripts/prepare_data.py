@@ -60,7 +60,7 @@ def create_text_sequence_feature(fl, sentence, sentence_len, vocab):
     """
     Writes a sentece to FeatureList protocol buffer
     """
-    sentence_trasformed = transform_sentence(sentece, vocab)
+    sentence_trasformed = transform_sentence(sentence, vocab)
     for word_id in sentence_trasformed:
         fl.feature.add().int64_list.value.extend([word_id])
     return fl
