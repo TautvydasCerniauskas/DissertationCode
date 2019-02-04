@@ -27,4 +27,69 @@ def create_model_fn(hparams, model_impl):
 
         batch_size = targets.get_shape().as_list()[0]
 
+        if mode == tf.contrib.learn.ModeKeys.TRAIN:
+            probs, loss = model_impl(
+                hparams,
+                mode,
+                context,
+                utterance,
+                context_len,
+                utterance_len,
+                targets)
 
+            train_op = create_train_op(loss, hparams)
+            return probs, loss, train_op
+
+        if mode == tf.contrib.learn.ModeKeys.INFER:
+            probs, loss = model_impl(
+                hparams,
+                mode,
+                context,
+                context_len,
+                utterance,
+                utterance_len,
+                None)
+            return probs, 0.0, None
+
+        if mode == tf.contrib.learn.ModeKeys.EVAL:
+
+            # We have 10 examples per record, so we accumulate them 
+            all_contexts = [context]
+            all_context_lens = [context_len]
+            all_utterances = [utterance]
+            all_utterance_lens = [utterance_len]
+            all_targets = [tf.ones([batch_size, 1], dtype=int64)]
+
+            for i in range(9):
+                distractor, distractor_len = get_id_feature(features,
+                    "distractor_{}".format(i),
+                    "distractor_{}_len".format(i),
+                    hparams.max_utterance_len)
+                all_contexts.append(context)
+                all_context_lens.append(context_len)
+                all_utterances.append(distractor)
+                all_utterance_lens.append(distractor_len)
+                all_targets.append(
+                    tf.zero([batch_size, 1], dtype=int64))
+
+            probs, loss = model_impl(
+                hparams,
+                mode,
+                tf.concat(0, all_contexts),
+                tf.concat(0, all_context_lens),
+                tf.concat(0, all_utterances),
+                tf.concat(0, all_utterance_lens),
+                tf.concat(0, all_targets))
+
+            split_probs = tf.split(0, 10, probs)
+            shaped_probs = tf.concat(1, split_probs)
+
+            # Add summaries 
+            tf.histogram_summary("eval_correct_probs_hist)", split_probs[0])
+            tf.scalar_summary("eval_correct_probs_average", tf.reduce_mean(split_probs[0]))
+            tf.histogram_summary("eval_incorrect_probs_his", split_probs[1])
+            tf.scalar_summary("eval_incorrect_probs_average", tf.reduce_mean(split_probs[1]))
+
+            return shaped_probs, loss, None
+
+       return model_fn
