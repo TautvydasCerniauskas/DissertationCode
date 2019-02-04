@@ -4,6 +4,9 @@ tmp/
 data/
 runs/
 
+# ignore vim swp files
+*.swp
+
 # Created by https://www.gitignore.io/api/python,ipythonnotebook
 
 ### Python ###
