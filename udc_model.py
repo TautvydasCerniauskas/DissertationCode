@@ -92,4 +92,4 @@ def create_model_fn(hparams, model_impl):
 
             return shaped_probs, loss, None
 
-       return model_fn
+    return model_fn

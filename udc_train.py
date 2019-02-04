@@ -39,13 +39,19 @@ def main(unused_argv):
         model_dir=MODEL_DIR,
         config=tf.contrib.learn.RunConfig())
 
+    input_fn_train = udc_inputs.create_input(
+        mode=tf.contrib.learn.ModeKeys.TRAIN,
+        input_files=[TRAIN_FILE],
+        batch_size=hparams.batch_size,
+        num_epochs=FLAGS.num_epochs)
+
     input_fn_eval = udc_inputs.create_input(
         mode=tf.contrib.learn.ModeKeys.TRAIN,
         input_files=[TRAIN_FILE],
         batch_size=hparams.eval_batch_size,
         num_epochs=1)
 
-    eval_metrics udc_metrics.create_evaluation_metrics()
+    eval_metrics = udc_metrics.create_evaluation_metrics()
 
     eval_monitor = tf.contrib.learn.monitors.ValidationMonitor(
         input_fn=input_fn_eval,

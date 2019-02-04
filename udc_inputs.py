@@ -16,7 +16,12 @@ def get_feature_columns(mode):
 
     if mode == tf.contrib.learn.ModeKeys.TRAIN:
        # During training we have a label feature 
-       for i in range(9):
+       feature_columns.append(tf.contrib.layers.real_valued_column(
+           column_name="label", dimension=1, dtype=tf.int64))
+
+    if mode == tf.contrib.learn.ModeKeys.EVAL:
+        # During evaluation we have distractors
+        for i in range(9):
            feature_columns.append(tf.contrib.layers.real_valued_column(
                column_name="distractor_{}".format(i), dimension=TEXT_FEATURE_SIZE, dtype=tf.int64))
            feature_columns.append(tf.contrib.layers.real_valued_column(
