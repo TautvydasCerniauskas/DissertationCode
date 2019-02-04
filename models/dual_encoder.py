@@ -1,6 +1,6 @@
 import tensorflow as tf
 import numpy as np
-from models import helpers 
+from models import helpers
 
 FLAGS = tf.flags.FLAGS
 
@@ -9,16 +9,19 @@ def get_embeddigs(hparams):
         tf.logging.info("Loading Glove embeddings...")
         vocab_array, vocab_dict = helpers.load_vocab(hparams.vocab_path)
         glove_vectors, glove_dict = helpers.load_glove_vectors(hparams.glove_path, vocab=set(vocab_array))
-        initializer = helpers.build_initial_embedding_matrix(vocab_dict, glove_dict, glove_vectors, hparams.enbedding_dim)
+        initializer = helpers.build_initial_embedding_matrix(vocab_dict, glove_dict, glove_vectors, hparams.embedding_dim)
+
+        return tf.get_variable(
+            "word_embeddings",
+            initializer=initializer)
     else:
         tf.logging.info("No glove/vocab path specified, starting with random embeddings")
         initializer = tf.random_uniform_initializer(-0.25, 0.25)
+        return tf.get_variable(
+            "word_embeddings",
+            shape=[hparams.vocab_size, hparams.embedding_dim],
+            initializer=initializer)
 
-    return tf.get_variable(
-        "word_embeddings",
-        shape=[hparams.vocab_size, hparams.enbedding_dim],
-        initializer=initializer
-    )
 
 def dual_encoder_model(
     hparams,
@@ -36,7 +39,7 @@ def dual_encoder_model(
     context_embedded = tf.nn.embedding_lookup(
         embeddings_W, context, name="embed_context")
     utterance_embedded = tf.nn.embedding_lookup(
-        embeddings_W, utterance, name="embed utterance")
+        embeddings_W, utterance, name="embed_utterance")
 
     # Build the RNN
     with tf.variable_scope("rnn") as vs:
@@ -57,8 +60,8 @@ def dual_encoder_model(
 
     with tf.variable_scope("prediction") as vs:
         M = tf.get_variable("M",
-        shape=[hparams.rnn_dim, hparams.rnn_dim],
-        initializer=tf.truncated_normal_initializer())
+            shape=[hparams.rnn_dim, hparams.rnn_dim],
+            initializer=tf.truncated_normal_initializer())
 
         # "Predict" a response C * M
         generated_response = tf.matmul(encoding_context, M)

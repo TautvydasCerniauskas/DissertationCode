@@ -4,7 +4,7 @@ import sys
 def get_id_feature(features, key, len_key, max_len):
     ids = features[key]
     ids_len = tf.squeeze(features[len_key], [1])
-    ids_len = tf.minimum(ids_len, tf.constant(max_len, dtype=int64))
+    ids_len = tf.minimum(ids_len, tf.constant(max_len, dtype=tf.int64))
     return ids, ids_len
 
 def create_train_op(loss, hparams):
@@ -58,7 +58,7 @@ def create_model_fn(hparams, model_impl):
             all_context_lens = [context_len]
             all_utterances = [utterance]
             all_utterance_lens = [utterance_len]
-            all_targets = [tf.ones([batch_size, 1], dtype=int64)]
+            all_targets = [tf.ones([batch_size, 1], dtype=tf.int64)]
 
             for i in range(9):
                 distractor, distractor_len = get_id_feature(features,
@@ -70,7 +70,7 @@ def create_model_fn(hparams, model_impl):
                 all_utterances.append(distractor)
                 all_utterance_lens.append(distractor_len)
                 all_targets.append(
-                    tf.zero([batch_size, 1], dtype=int64))
+                    tf.zero([batch_size, 1], dtype=tf.int64))
 
             probs, loss = model_impl(
                 hparams,
