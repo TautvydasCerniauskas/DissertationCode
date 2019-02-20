@@ -4,7 +4,7 @@ import tensorflow as tf
 from collections import defaultdict
 
 def load_vocab(filename):
-    vocab =  None
+    vocab = None
     with open(filename) as f:
         vocab = f.read().splitlines()
     dct = defaultdict(int)
