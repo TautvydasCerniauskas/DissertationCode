@@ -2,10 +2,7 @@ import tensorflow as tf
 from collections import namedtuple
 
 # Model parameters
-tf.flags.DEFINE_integer(
-    "vocab_size",
-    91260,
-    "The size of the vocabulary. Only change this if you changed the proprocessing")
+tf.flags.DEFINE_integer("vocab_size", 91260, "The size of the vocabulary. Only change this if you changed the proprocessing")
 
 # Model parameters
 tf.flags.DEFINE_integer("embedding_dim", 100, "Dimmensionality of the embeddings")
