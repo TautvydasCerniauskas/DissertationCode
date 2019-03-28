@@ -5,6 +5,8 @@ import unicodedata
 import pandas as pd
 import numpy as np
 
+from config import datafile, save_dir, MAX_LENGTH
+
 # Set up paths for dataset files
 corpus_name = "cornell movie-dialogs corpus"
 corpus = os.path.join("data", corpus_name)
@@ -126,3 +128,10 @@ def loadPrepareData(corpus, corpus_name, datafile, save_dir):
         voc.addSentence(pair[1])
     print("Counted words:", voc.num_words)
     return voc, pairs
+
+# Load/Assemble voc and pairs
+voc, pairs = loadPrepareData(corpus, corpus_name, datafile, save_dir)
+# Print some pairs to validate
+print("\npairs:")
+for pair in pairs[:10]:
+    print(pair)

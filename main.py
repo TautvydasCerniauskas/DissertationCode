@@ -1,10 +1,12 @@
 import os
 import torch
-from load import *
+import torch.nn as nn
+from torch import optim
+
+from load import voc, pairs
 from config import *
+from model import *
 
-
-voc, pairs = loadPrepareData(corpus, corpus_name, datafile, save_dir)
 # Print some pairs to validate
 print("\npairs:")
 for pair in pairs[:10]:

@@ -22,7 +22,6 @@ def loadLines(fileName, fields):
             lines[lineObj['lineID']] = lineObj
     return lines
 
-
 # Groups fields of lines from `loadLines` into conversations based on *movie_conversations.txt*
 def loadConversations(fileName, lines, fields):
     conversations = []
