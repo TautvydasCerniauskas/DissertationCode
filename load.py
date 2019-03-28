@@ -5,22 +5,7 @@ import unicodedata
 import pandas as pd
 import numpy as np
 
-from config import datafile, save_dir, MAX_LENGTH
-
-# Set up paths for dataset files
-corpus_name = "cornell movie-dialogs corpus"
-corpus = os.path.join("data", corpus_name)
-
-# Print first 10 lines of a passed on file
-def printLines(fileName, n=10):
-    with open(fileName, 'rb') as datafile:
-        lines = datafile.readlines()
-        for line in lines[:n]:
-            print(line)
-
-# printLines(os.path.join(corpus, "movie_lines.txt"))
-
-# printLines(os.path.join(corpus, "movie_conversations.txt"))
+from config import datafile, save_dir, MAX_LENGTH, corpus, corpus_name
 
 # Default word tokens
 PAD_token = 0  # Used for padding short sentences
@@ -127,3 +112,45 @@ def loadPrepareData(corpus, corpus_name, datafile, save_dir):
         voc.addSentence(pair[1])
     print("Counted words:", voc.num_words)
     return voc, pairs
+
+# Load/Assemble voc and pairs
+save_dir = os.path.join("data", "save")
+voc, pairs = loadPrepareData(corpus, corpus_name, datafile, save_dir)
+# Print some pairs to validate
+print("\npairs:")
+for pair in pairs[:10]:
+    print(pair)
+
+MIN_COUNT = 3    # Minimum word count threshold for trimming
+
+def trimRareWords(voc, pairs, MIN_COUNT):
+    # Trim words used under the MIN_COUNT from the voc
+    voc.trim(MIN_COUNT)
+    # Filter out pairs with trimmed words
+    keep_pairs = []
+    for pair in pairs:
+        input_sentence = pair[0]
+        output_sentence = pair[1]
+        keep_input = True
+        keep_output = True
+        # Check input sentence
+        for word in input_sentence.split(' '):
+            if word not in voc.word2index:
+                keep_input = False
+                break
+        # Check output sentence
+        for word in output_sentence.split(' '):
+            if word not in voc.word2index:
+                keep_output = False
+                break
+
+        # Only keep pairs that do not contain trimmed word(s) in their input or output sentence
+        if keep_input and keep_output:
+            keep_pairs.append(pair)
+
+    print("Trimmed from {} pairs to {}, {:.4f} of total".format(len(pairs), len(keep_pairs), len(keep_pairs) / len(pairs)))
+    return keep_pairs
+
+
+# Trim voc and pairs
+pairs = trimRareWords(voc, pairs, MIN_COUNT)

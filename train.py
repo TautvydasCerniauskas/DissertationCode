@@ -7,11 +7,12 @@ import itertools
 import random
 import math
 import os
+import time
 from tqdm import tqdm
 
 from load import loadPrepareData, SOS_token, EOS_token, PAD_token
 from model import EncoderRNN, LuongAttnDecoderRNN
-from config import MAX_LENGTH
+from config import MAX_LENGTH, teacher_forcing_ratio
 
 # Set CUDA variables and device settings
 USE_CUDA = torch.cuda.is_available()
@@ -173,11 +174,11 @@ def trainIters(model_name, voc, pairs, encoder, decoder, encoder_optimizer, deco
         # Print progress
         if iteration % print_every == 0:
             print_loss_avg = print_loss / print_every
-            print("Iteration: {}; Percent complete: {:.1f}%; Average loss: {:.4f}".format(iteration, iteration / n_iteration * 100, print_loss_avg))
+            # print("Iteration: {}; Percent complete: {:.1f}%; Average loss: {:.4f}".format(iteration, iteration / n_iteration * 100, print_loss_avg))
             print_loss = 0
             
-        if iteration % 500 == 0: 
-            print("Current time is: {}".format(time.asctime(time.localtime(time.time()))))
+        # if iteration % 500 == 0: 
+        #     print("Current time is: {}".format(time.asctime(time.localtime(time.time()))))
 
         # Save checkpoint
         if (iteration % save_every == 0):

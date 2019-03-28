@@ -4,26 +4,18 @@ import torch.nn as nn
 import argparse
 from torch import optim
 
-from load import loadPrepareData
+from load import loadPrepareData, voc, pairs
 from config import *
 from model import *
 from train import trainIters
 from evaluate import evaluateInput
 
-
-# # Load/Assemble voc and pairs
-voc, pairs = loadPrepareData(corpus, corpus_name, datafile, save_dir)
-# # Print some pairs to validate
-# print("\npairs:")
-# for pair in pairs[:10]:
-#     print(pair)
-
 # Set checkpoint to load from; set to None if starting from scratch
 loadFilename = None
 checkpoint_iter = 50000
-loadFilename = os.path.join(save_dir, model_name, corpus_name,
-                           '{}-{}_{}'.format(encoder_n_layers, decoder_n_layers, hidden_size),
-                           '{}_checkpoint.tar'.format(checkpoint_iter))
+# loadFilename = os.path.join(save_dir, model_name, corpus_name,
+#                            '{}-{}_{}'.format(encoder_n_layers, decoder_n_layers, hidden_size),
+#                            '{}_checkpoint.tar'.format(checkpoint_iter))
 
 # Load model if a loadFilename is provided
 if loadFilename:
@@ -38,7 +30,7 @@ if loadFilename:
     embedding_sd = checkpoint['embedding']
     voc.__dict__ = checkpoint['voc_dict']
 
-# print('Building encoder and decoder ...')
+print('Building encoder and decoder ...')
 # Initialize word embeddings
 embedding = nn.Embedding(voc.num_words, hidden_size)
 if loadFilename:
@@ -52,11 +44,11 @@ if loadFilename:
 # Use appropriate device
 encoder = encoder.to(device)
 decoder = decoder.to(device)
-# print('Models built and ready to go!')
+print('Models built and ready to go!')
 
-# # Ensure dropout layers are in train mode
-# encoder.train()
-# decoder.train()
+# Ensure dropout layers are in train mode
+encoder.train()
+decoder.train()
 
 # Initialize optimizers
 print('Building optimizers ...')
@@ -67,16 +59,17 @@ if loadFilename:
     decoder_optimizer.load_state_dict(decoder_optimizer_sd)
 
 def parse():
+
     parser = argparse.ArgumentParser(description="Seq2seq chatbot with Attention")
     parser.add_argument('-tr', '--train', action='store_true', help="Train the model")
     parser.add_argument('-eval', '--evaluate', action='store_true', help="Evaluate the model")
-    parser.add_argument('-b', '--beam', type=int, default=1, help='Beam size')
-
+    parser.add_argument('-b', '--beam', type=int, default=2, help='Beam size')
 
     args = parser.parse_args()
     return args
 
 def run(args):
+
     if(args.train):
         # Run training iterations
         print("Starting Training!")

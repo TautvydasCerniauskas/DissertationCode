@@ -1,3 +1,8 @@
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+
 import os
 import csv
 import codecs
@@ -6,7 +11,17 @@ import numpy as np
 import re
 
 from config import datafile, corpus, corpus_name
-from load import printLines
+
+# Print first 10 lines of a passed on file
+def printLines(fileName, n=10):
+    with open(fileName, 'rb') as datafile:
+        lines = datafile.readlines()
+        for line in lines[:n]:
+            print(line)
+
+printLines(os.path.join(corpus, "movie_lines.txt"))
+
+printLines(os.path.join(corpus, "movie_conversations.txt"))
 
 # Splits each line of the file into a dictionary of fields(lineID, characterID, movieID, character, text)
 def loadLines(fileName, fields):
