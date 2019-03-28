@@ -1,27 +1,22 @@
 import os
 import torch
 import torch.nn as nn
+import argparse
 from torch import optim
 
-from load import voc, pairs
+from load import loadPrepareData
 from config import *
 from model import *
 from train import trainIters
+from evaluate import evaluateInput
 
-# Print some pairs to validate
-print("\npairs:")
-for pair in pairs[:10]:
-    print(pair)
 
-# Example for validation
-batches = batch2TrainData(voc, [random.choice(pairs) for _ in range(small_batch_size)])
-input_variable, lengths, target_variable, mask, max_target_len = batches
-
-print("input_variable: \n", input_variable)
-print("lengths:", lengths)
-print("target_variable: \n", target_variable)
-print("mask: \n", mask)
-print("max_target_len:", max_target_len)
+# # Load/Assemble voc and pairs
+voc, pairs = loadPrepareData(corpus, corpus_name, datafile, save_dir)
+# # Print some pairs to validate
+# print("\npairs:")
+# for pair in pairs[:10]:
+#     print(pair)
 
 # Set checkpoint to load from; set to None if starting from scratch
 loadFilename = None
@@ -43,9 +38,7 @@ if loadFilename:
     embedding_sd = checkpoint['embedding']
     voc.__dict__ = checkpoint['voc_dict']
 
-# def run_training():
-
-print('Building encoder and decoder ...')
+# print('Building encoder and decoder ...')
 # Initialize word embeddings
 embedding = nn.Embedding(voc.num_words, hidden_size)
 if loadFilename:
@@ -59,11 +52,11 @@ if loadFilename:
 # Use appropriate device
 encoder = encoder.to(device)
 decoder = decoder.to(device)
-print('Models built and ready to go!')
+# print('Models built and ready to go!')
 
-# Ensure dropout layers are in train mode
-encoder.train()
-decoder.train()
+# # Ensure dropout layers are in train mode
+# encoder.train()
+# decoder.train()
 
 # Initialize optimizers
 print('Building optimizers ...')
@@ -73,22 +66,30 @@ if loadFilename:
     encoder_optimizer.load_state_dict(encoder_optimizer_sd)
     decoder_optimizer.load_state_dict(decoder_optimizer_sd)
 
-# Run training iterations
-print("Starting Training!")
-trainIters(model_name, voc, pairs, encoder, decoder, encoder_optimizer, decoder_optimizer,
-           embedding, encoder_n_layers, decoder_n_layers, save_dir, n_iteration, batch_size,
-           print_every, save_every, clip, corpus_name, loadFilename)
+def parse():
+    parser = argparse.ArgumentParser(description="Seq2seq chatbot with Attention")
+    parser.add_argument('-tr', '--train', action='store_true', help="Train the model")
+    parser.add_argument('-eval', '--evaluate', action='store_true', help="Evaluate the model")
+    parser.add_argument('-b', '--beam', type=int, default=1, help='Beam size')
 
 
+    args = parser.parse_args()
+    return args
 
+def run(args):
+    if(args.train):
+        # Run training iterations
+        print("Starting Training!")
+        trainIters(model_name, voc, pairs, encoder, decoder, encoder_optimizer, decoder_optimizer,
+                embedding, encoder_n_layers, decoder_n_layers, save_dir, n_iteration, batch_size,
+                print_every, save_every, clip, corpus_name, loadFilename)
+    if(args.evaluate):
+        # Set dropout layers to eval mode
+        encoder.eval()
+        decoder.eval()
+        # Begin chatting (uncomment and run the following line to begin)
+        evaluateInput(encoder, decoder, voc, args.beam)
 
-# Set dropout layers to eval mode
-encoder.eval()
-decoder.eval()
-
-# Initialize search module
-# searcher = GreedySearchDecoder(encoder, decoder)
-
-# Begin chatting (uncomment and run the following line to begin)
-# evaluateInput(encoder, decoder, searcher, voc)
-evaluateInput(encoder, decoder, voc, beam_size=3)
+if __name__ == "__main__":
+    args = parse()
+    run(args)

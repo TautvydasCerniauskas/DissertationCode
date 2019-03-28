@@ -2,7 +2,7 @@ import torch
 import random
 from train import indexesFromSentence
 from load import SOS_token, EOS_token
-from load import MAX_LENGTH, loadPrepareData, Voc
+from load import MAX_LENGTH, loadPrepareData, Voc, normalizeString
 from model import *
 
 USE_CUDA = torch.cuda.is_available()
@@ -123,7 +123,6 @@ def evaluateInput(encoder, decoder, voc, beam_size):
             pair = input('> ')
             if pair == 'q': break
             pair = normalizeString(pair)
-
             if beam_size == 1:
                 output_words, _ = evaluate(encoder, decoder, voc, pair, beam_size)
                 output_sentence = ' '.join(output_words)

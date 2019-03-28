@@ -78,7 +78,6 @@ class Voc:
             self.addWord(word)
 
 
-
 # Turn a Unicode string to plain ASCII, thanks to
 # https://stackoverflow.com/a/518232/2809427
 def unicodeToAscii(s):
@@ -128,10 +127,3 @@ def loadPrepareData(corpus, corpus_name, datafile, save_dir):
         voc.addSentence(pair[1])
     print("Counted words:", voc.num_words)
     return voc, pairs
-
-# Load/Assemble voc and pairs
-voc, pairs = loadPrepareData(corpus, corpus_name, datafile, save_dir)
-# Print some pairs to validate
-print("\npairs:")
-for pair in pairs[:10]:
-    print(pair)
