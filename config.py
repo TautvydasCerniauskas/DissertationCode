@@ -29,3 +29,4 @@ decoder_learning_ratio = 5.0
 n_iteration = 50000
 print_every = 1
 save_every = 500
+checkpoint_iter = 50000
