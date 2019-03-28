@@ -65,16 +65,6 @@ def batch2TrainData(voc, pair_batch):
     output, mask, max_target_len = outputVar(output_batch, voc)
     return inp, lengths, output, mask, max_target_len
 
-# # Example for validation
-# batches = batch2TrainData(voc, [random.choice(pairs) for _ in range(small_batch_size)])
-# input_variable, lengths, target_variable, mask, max_target_len = batches
-
-# print("input_variable: \n", input_variable)
-# print("lengths:", lengths)
-# print("target_variable: \n", target_variable)
-# print("mask: \n", mask)
-# print("max_target_len:", max_target_len)
-
 def train(input_variable, lengths, target_variable, mask, max_target_len, encoder, decoder, embedding,
           encoder_optimizer, decoder_optimizer, batch_size, clip, max_length=MAX_LENGTH):
 

@@ -6,11 +6,22 @@ from torch import optim
 from load import voc, pairs
 from config import *
 from model import *
+from train import trainIters
 
 # Print some pairs to validate
 print("\npairs:")
 for pair in pairs[:10]:
     print(pair)
+
+# Example for validation
+batches = batch2TrainData(voc, [random.choice(pairs) for _ in range(small_batch_size)])
+input_variable, lengths, target_variable, mask, max_target_len = batches
+
+print("input_variable: \n", input_variable)
+print("lengths:", lengths)
+print("target_variable: \n", target_variable)
+print("mask: \n", mask)
+print("max_target_len:", max_target_len)
 
 # Set checkpoint to load from; set to None if starting from scratch
 loadFilename = None
@@ -19,13 +30,12 @@ loadFilename = os.path.join(save_dir, model_name, corpus_name,
                            '{}-{}_{}'.format(encoder_n_layers, decoder_n_layers, hidden_size),
                            '{}_checkpoint.tar'.format(checkpoint_iter))
 
-
 # Load model if a loadFilename is provided
 if loadFilename:
     # If loading on same machine the model was trained on
-#     checkpoint = torch.load(loadFilename)
+    checkpoint = torch.load(loadFilename)
     # If loading a model trained on GPU to CPU
-    checkpoint = torch.load(loadFilename, map_location=torch.device('cpu'))
+    # checkpoint = torch.load(loadFilename, map_location=torch.device('cpu'))
     encoder_sd = checkpoint['en']
     decoder_sd = checkpoint['de']
     encoder_optimizer_sd = checkpoint['en_opt']
@@ -33,6 +43,7 @@ if loadFilename:
     embedding_sd = checkpoint['embedding']
     voc.__dict__ = checkpoint['voc_dict']
 
+# def run_training():
 
 print('Building encoder and decoder ...')
 # Initialize word embeddings
