@@ -13,17 +13,23 @@ import re
 from config import datafile, corpus, corpus_name
 
 # Print first 10 lines of a passed on file
+
+
 def printLines(fileName, n=10):
     with open(fileName, 'rb') as datafile:
         lines = datafile.readlines()
         for line in lines[:n]:
             print(line)
 
+
 printLines(os.path.join(corpus, "movie_lines.txt"))
 
 printLines(os.path.join(corpus, "movie_conversations.txt"))
 
-# Splits each line of the file into a dictionary of fields(lineID, characterID, movieID, character, text)
+# Splits each line of the file into a dictionary of fields(lineID,
+# characterID, movieID, character, text)
+
+
 def loadLines(fileName, fields):
     lines = {}
     with open(fileName, 'r', encoding='iso-8859-1') as f:
@@ -37,7 +43,10 @@ def loadLines(fileName, fields):
             lines[lineObj['lineID']] = lineObj
     return lines
 
-# Groups fields of lines from `loadLines` into conversations based on *movie_conversations.txt*
+# Groups fields of lines from `loadLines` into conversations based on
+# *movie_conversations.txt*
+
+
 def loadConversations(fileName, lines, fields):
     conversations = []
     with open(fileName, 'r', encoding='iso-8859-1') as f:
@@ -48,14 +57,16 @@ def loadConversations(fileName, lines, fields):
             convObj = {}
             for i, field in enumerate(fields):
                 convObj[field] = values[i]
-            # Convert string to list (convObj["utteranceIDs"] == "['L598485', 'L598486', ...]")
+            # Convert string to list (convObj["utteranceIDs"] == "['L598485',
+            # 'L598486', ...]")
             lineIds = eval(convObj["utteranceIDs"])
             # Reassemble lines
             convObj["lines"] = []
             for lineId in lineIds:
                 # Takes lines from the loadLines and appends them all together
                 convObj["lines"].append(lines[lineId])
-            # Creates a full conversation list with all the utterances, characterIDs and so on.
+            # Creates a full conversation list with all the utterances,
+            # characterIDs and so on.
             conversations.append(convObj)
     [print(i) for i in conversations[:2]]
     return conversations
@@ -66,20 +77,26 @@ def extractSentencePairs(conversations):
     qa_pairs = []
     for conversation in conversations:
         # Iterate over all the lines of the conversation
-        for i in range(len(conversation["lines"]) - 1):  # We ignore the last line (no answer for it)
-            # Then we take the first line of a conversation as an input and a second line as a target
+        for i in range(
+                len(conversation["lines"]) - 1):  # We ignore the last line (no answer for it)
+            # Then we take the first line of a conversation as an input and a
+            # second line as a target
             inputLine = conversation["lines"][i]["text"].strip()
             targetLine = conversation["lines"][i+1]["text"].strip()
-            # Filter wrong samples (if one of the lists is empty we ignore them and move to a another one)
+            # Filter wrong samples (if one of the lists is empty we ignore them
+            # and move to a another one)
             if inputLine and targetLine:
                 qa_pairs.append([inputLine, targetLine])
     return qa_pairs
+
 
 friends_df = pd.read_csv("data/friends_final_rdy.csv")
 friends_sentences = friends_df['line']
 
 # This is not a perfect implementation....
-def extractSentencePairsFromCsv(sentences):  
+
+
+def extractSentencePairsFromCsv(sentences):
     qa_pairs = []
     for count, line in enumerate(sentences):
         if count % 2 == 0:
@@ -88,18 +105,21 @@ def extractSentencePairsFromCsv(sentences):
             targetLine = line.strip()
             qa_pairs.append([inputLine, targetLine])
     return qa_pairs
-        
+
+
 friends_pairs = extractSentencePairsFromCsv(friends_sentences)
 
 # This is not a perfect implementation....
+
+
 def extractSentencesFromHYMYMFile(filename):
     sentences_df = pd.read_csv(filename)
     sentences_df.dropna(subset=['Sentence'], inplace=True)
-    
+
     sentences = []
-    for i, line in enumerate(sentences_df['Sentence']):     
+    for i, line in enumerate(sentences_df['Sentence']):
         line = line.strip()
-        line = re.sub('[\(\[].*?[\)\]]', '', line)
+        line = re.sub(r'[\(\[].*?[\)\]]', '', line)
         line = line.split(":")[1:]
         line = ' '.join(line)
         sentences.append(line)
@@ -107,6 +127,7 @@ def extractSentencesFromHYMYMFile(filename):
     sentences_df['Formatted'].replace('', np.nan, inplace=True)
     sentences_df.dropna(subset=['Formatted'], inplace=True)
     return sentences_df['Formatted']
+
 
 HIMYM_sentences = extractSentencesFromHYMYMFile("data/HIMYM_sentences.csv")
 HIMYM_pairs = extractSentencePairsFromCsv(HIMYM_sentences)
@@ -121,16 +142,21 @@ conversations = []
 # Define our desired names for line fields
 MOVIE_LINES_FIELDS = ["lineID", "characterID", "movieID", "character", "text"]
 # Definied conversations fields
-MOVIE_CONVERSATIONS_FIELDS = ["character1ID", "character2ID", "movieID", "utteranceIDs"]
+MOVIE_CONVERSATIONS_FIELDS = [
+    "character1ID",
+    "character2ID",
+    "movieID",
+    "utteranceIDs"]
 
 # Load lines and process conversations
 print("\nProcessing corpus...")
 lines = loadLines(os.path.join(corpus, "movie_lines.txt"), MOVIE_LINES_FIELDS)
 print("\nLoading conversations...")
-conversations = loadConversations(os.path.join(corpus, "movie_conversations.txt"),
-                                  lines, MOVIE_CONVERSATIONS_FIELDS)
+conversations = loadConversations(
+    os.path.join(corpus, "movie_conversations.txt"),
+    lines, MOVIE_CONVERSATIONS_FIELDS)
 
-# Write new csv file, where each input 
+# Write new csv file, where each input
 print("\nWriting newly formatted file...")
 with open(datafile, 'w', encoding='utf-8') as outputfile:
     writer = csv.writer(outputfile, delimiter=delimiter, lineterminator='\n')
@@ -140,7 +166,6 @@ with open(datafile, 'w', encoding='utf-8') as outputfile:
         writer.writerow(pair)
     for pair in HIMYM_pairs:
         writer.writerow(pair)
-        
 
 
 # Print a sample of lines

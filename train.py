@@ -20,11 +20,14 @@ device = torch.device("cuda" if USE_CUDA else "cpu")
 
 cudnn.benchmark = True
 
+
 def indexesFromSentence(voc, sentence):
     return [voc.word2index[word] for word in sentence.split(' ')] + [EOS_token]
 
+
 def zeroPadding(l, fillvalue=PAD_token):
     return list(itertools.zip_longest(*l, fillvalue=fillvalue))
+
 
 def binaryMatrix(l, value=PAD_token):
     m = []
@@ -38,6 +41,8 @@ def binaryMatrix(l, value=PAD_token):
     return m
 
 # Returns padded input sequence tensor and lengths
+
+
 def inputVar(l, voc):
     indexes_batch = [indexesFromSentence(voc, sentence) for sentence in l]
     lengths = torch.tensor([len(indexes) for indexes in indexes_batch])
@@ -46,6 +51,8 @@ def inputVar(l, voc):
     return padVar, lengths
 
 # Returns padded target sequence tensor, padding mask, and max target length
+
+
 def outputVar(l, voc):
     indexes_batch = [indexesFromSentence(voc, sentence) for sentence in l]
     max_target_len = max([len(indexes) for indexes in indexes_batch])
@@ -56,6 +63,8 @@ def outputVar(l, voc):
     return padVar, mask, max_target_len
 
 # Returns all items for a given batch of pairs
+
+
 def batch2TrainData(voc, pair_batch):
     pair_batch.sort(key=lambda x: len(x[0].split(" ")), reverse=True)
     input_batch, output_batch = [], []
@@ -66,15 +75,20 @@ def batch2TrainData(voc, pair_batch):
     output, mask, max_target_len = outputVar(output_batch, voc)
     return inp, lengths, output, mask, max_target_len
 
+
 def maskNLLLoss(inp, target, mask):
     nTotal = mask.sum()
-    crossEntropy = -torch.log(torch.gather(inp, 1, target.view(-1, 1)).squeeze(1))
+    crossEntropy = -torch.log(torch.gather(inp, 1,
+                                           target.view(-1, 1)).squeeze(1))
     loss = crossEntropy.masked_select(mask).mean()
     loss = loss.to(device)
     return loss, nTotal.item()
 
-def train(input_variable, lengths, target_variable, mask, max_target_len, encoder, decoder, embedding,
-          encoder_optimizer, decoder_optimizer, batch_size, clip, max_length=MAX_LENGTH):
+
+def train(
+        input_variable, lengths, target_variable, mask, max_target_len,
+    encoder, decoder, embedding, encoder_optimizer, decoder_optimizer,
+        batch_size, clip, max_length=MAX_LENGTH):
 
     # Zero gradients
     encoder_optimizer.zero_grad()
@@ -113,7 +127,8 @@ def train(input_variable, lengths, target_variable, mask, max_target_len, encode
             # Teacher forcing: next input is current target
             decoder_input = target_variable[t].view(1, -1)
             # Calculate and accumulate loss
-            mask_loss, nTotal = maskNLLLoss(decoder_output, target_variable[t], mask[t])
+            mask_loss, nTotal = maskNLLLoss(
+                decoder_output, target_variable[t], mask[t])
             loss += mask_loss
             print_losses.append(mask_loss.item() * nTotal)
             n_totals += nTotal
@@ -124,10 +139,12 @@ def train(input_variable, lengths, target_variable, mask, max_target_len, encode
             )
             # No teacher forcing: next input is decoder's own current output
             _, topi = decoder_output.topk(1)
-            decoder_input = torch.LongTensor([[topi[i][0] for i in range(batch_size)]])
+            decoder_input = torch.LongTensor(
+                [[topi[i][0] for i in range(batch_size)]])
             decoder_input = decoder_input.to(device)
             # Calculate and accumulate loss
-            mask_loss, nTotal = maskNLLLoss(decoder_output, target_variable[t], mask[t])
+            mask_loss, nTotal = maskNLLLoss(
+                decoder_output, target_variable[t], mask[t])
             loss += mask_loss
             print_losses.append(mask_loss.item() * nTotal)
             n_totals += nTotal
@@ -145,15 +162,23 @@ def train(input_variable, lengths, target_variable, mask, max_target_len, encode
 
     return sum(print_losses) / n_totals
 
-def trainIters(model_name, voc, pairs, encoder, decoder, encoder_optimizer, decoder_optimizer, embedding, encoder_n_layers, decoder_n_layers, save_dir, n_iteration, batch_size, print_every, save_every, clip, corpus_name, loadFilename):
+
+def trainIters(
+        model_name, voc, pairs, encoder, decoder, encoder_optimizer,
+        decoder_optimizer, embedding, encoder_n_layers, decoder_n_layers,
+        save_dir, n_iteration, batch_size, print_every, save_every, clip,
+        corpus_name, loadFilename):
 
     # Load batches for each iteration
-    training_batches = [batch2TrainData(voc, [random.choice(pairs) for _ in range(batch_size)])
-                      for _ in range(n_iteration)]
+    training_batches = [
+                        batch2TrainData(
+                            voc,
+                            [random.choice(pairs) for _ in range(batch_size)])
+                        for _ in range(n_iteration)]
 
     # Initializations
     print('Initializing ...')
-    print("Time started: {}".format(time.asctime( time.localtime(time.time()))))
+    print("Time started: {}".format(time.asctime(time.localtime(time.time()))))
     start_iteration = 1
     print_loss = 0
     if loadFilename:
@@ -167,8 +192,19 @@ def trainIters(model_name, voc, pairs, encoder, decoder, encoder_optimizer, deco
         input_variable, lengths, target_variable, mask, max_target_len = training_batch
 
         # Run a training iteration with batch
-        loss = train(input_variable, lengths, target_variable, mask, max_target_len, encoder,
-                     decoder, embedding, encoder_optimizer, decoder_optimizer, batch_size, clip)
+        loss = train(
+            input_variable,
+            lengths,
+            target_variable,
+            mask,
+            max_target_len,
+            encoder,
+            decoder,
+            embedding,
+            encoder_optimizer,
+            decoder_optimizer,
+            batch_size,
+            clip)
         print_loss += loss
 
         # Print progress
@@ -176,22 +212,26 @@ def trainIters(model_name, voc, pairs, encoder, decoder, encoder_optimizer, deco
             print_loss_avg = print_loss / print_every
             # print("Iteration: {}; Percent complete: {:.1f}%; Average loss: {:.4f}".format(iteration, iteration / n_iteration * 100, print_loss_avg))
             print_loss = 0
-            
-        # if iteration % 500 == 0: 
+
+        # if iteration % 500 == 0:
         #     print("Current time is: {}".format(time.asctime(time.localtime(time.time()))))
 
         # Save checkpoint
         if (iteration % save_every == 0):
-            directory = os.path.join(save_dir, model_name, corpus_name, '{}-{}_{}'.format(encoder_n_layers, decoder_n_layers, hidden_size))
+            directory = os.path.join(save_dir,
+                                     model_name,
+                                     corpus_name,
+                                     '{}-{}_{}'.format(encoder_n_layers,
+                                                       decoder_n_layers,
+                                                       hidden_size))
             if not os.path.exists(directory):
                 os.makedirs(directory)
-            torch.save({
-                'iteration': iteration,
-                'en': encoder.state_dict(),
-                'de': decoder.state_dict(),
-                'en_opt': encoder_optimizer.state_dict(),
-                'de_opt': decoder_optimizer.state_dict(),
-                'loss': loss,
-                'voc_dict': voc.__dict__,
-                'embedding': embedding.state_dict()
-            }, os.path.join(directory, '{}_{}.tar'.format(iteration, 'checkpoint')))
+            torch.save(
+                {'iteration': iteration, 'en': encoder.state_dict(),
+                 'de': decoder.state_dict(),
+                 'en_opt': encoder_optimizer.state_dict(),
+                 'de_opt': decoder_optimizer.state_dict(),
+                 'loss': loss, 'voc_dict': voc.__dict__,
+                 'embedding': embedding.state_dict()},
+                os.path.join(
+                    directory, '{}_{}.tar'.format(iteration, 'checkpoint')))
