@@ -112,12 +112,8 @@ def run(args):
 
         if loadFilename:
             embedding.load_state_dict(embedding_sd)
-
-        if loadFilename:
             encoder.load_state_dict(encoder_sd)
             decoder.load_state_dict(decoder_sd)
-
-        if loadFilename:
             encoder_optimizer.load_state_dict(encoder_optimizer_sd)
             decoder_optimizer.load_state_dict(decoder_optimizer_sd)
 
