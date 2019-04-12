@@ -43,6 +43,20 @@ def loadLines(fileName, fields):
             lines[lineObj['lineID']] = lineObj
     return lines
 
+
+# Load Character Metadata
+
+def loadCharacterMetada(fileName, fields):
+    characters = {}
+    with open(fileName, 'r', encoding='iso-8859-1') as f:
+        for line in f:
+            values = line.split(" +++$+++ ")
+            characterObj = {}
+            for i, field in enumerate(fields):
+                characterObj[field] = values[i]
+            characters[characterObj['characterID']] = characterObj
+    return characters
+
 # Groups fields of lines from `loadLines` into conversations based on
 # *movie_conversations.txt*
 
@@ -116,7 +130,7 @@ def extractSentencesFromHYMYMFile(filename):
     sentences_df.dropna(subset=['Sentence'], inplace=True)
 
     sentences = []
-    for i, line in enumerate(sentences_df['Sentence']):
+    for _, line in enumerate(sentences_df['Sentence']):
         line = line.strip()
         line = re.sub(r'[\(\[].*?[\)\]]', '', line)
         line = line.split(":")[1:]
@@ -140,6 +154,8 @@ lines = {}
 conversations = []
 # Define our desired names for line fields
 MOVIE_LINES_FIELDS = ["lineID", "characterID", "movieID", "character", "text"]
+# Character Metadata
+MOVIE_CHARACTER_FIELDS = ["characterID", "character", "movieID", "movieTitle", "gender", "creditPosition"]
 # Definied conversations fields
 MOVIE_CONVERSATIONS_FIELDS = [
     "character1ID",
@@ -150,10 +166,14 @@ MOVIE_CONVERSATIONS_FIELDS = [
 # Load lines and process conversations
 print("\nProcessing corpus...")
 lines = loadLines(os.path.join(corpus, "movie_lines.txt"), MOVIE_LINES_FIELDS)
+print("\nLoading character metadata")
+characters = loadCharacterMetada(os.path.join(corpus, "movie_characters_metadata.txt"), MOVIE_CHARACTER_FIELDS)
 print("\nLoading conversations...")
 conversations = loadConversations(
     os.path.join(corpus, "movie_conversations.txt"),
     lines, MOVIE_CONVERSATIONS_FIELDS)
+for i in range(5):
+    print(characters, conversations)
 
 # Write new csv file, where each input
 print("\nWriting newly formatted file...")
