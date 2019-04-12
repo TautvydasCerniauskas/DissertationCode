@@ -68,7 +68,6 @@ def loadConversations(fileName, lines, fields):
             # Creates a full conversation list with all the utterances,
             # characterIDs and so on.
             conversations.append(convObj)
-    [print(i) for i in conversations[:2]]
     return conversations
 
 
