@@ -10,7 +10,7 @@ import pandas as pd
 import numpy as np
 import re
 
-from config import datafile, corpus, corpus_name
+from config import datafile, corpus
 
 # Print first 10 lines of a passed on file
 
@@ -46,7 +46,7 @@ def loadLines(fileName, fields):
 
 # Load Character Metadata
 
-def loadCharacterMetada(fileName, fields):
+def loadCharacterMetadata(fileName, fields):
     characters = {}
     with open(fileName, 'r', encoding='iso-8859-1') as f:
         for line in f:
@@ -167,13 +167,11 @@ MOVIE_CONVERSATIONS_FIELDS = [
 print("\nProcessing corpus...")
 lines = loadLines(os.path.join(corpus, "movie_lines.txt"), MOVIE_LINES_FIELDS)
 print("\nLoading character metadata")
-characters = loadCharacterMetada(os.path.join(corpus, "movie_characters_metadata.txt"), MOVIE_CHARACTER_FIELDS)
+characters = loadCharacterMetadata(os.path.join(corpus, "movie_characters_metadata.txt"), MOVIE_CHARACTER_FIELDS)
 print("\nLoading conversations...")
 conversations = loadConversations(
     os.path.join(corpus, "movie_conversations.txt"),
     lines, MOVIE_CONVERSATIONS_FIELDS)
-for i in range(5):
-    print(characters, conversations)
 
 # Write new csv file, where each input
 print("\nWriting newly formatted file...")
@@ -185,7 +183,6 @@ with open(datafile, 'w', encoding='utf-8') as outputfile:
         writer.writerow(pair)
     for pair in HIMYM_pairs:
         writer.writerow(pair)
-
 
 # Print a sample of lines
 print("\nSample lines from file:")
