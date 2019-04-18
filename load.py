@@ -5,7 +5,7 @@ import unicodedata
 import pandas as pd
 import numpy as np
 
-from config import datafile, save_dir, MAX_LENGTH, corpus, corpus_name
+from config import datafile, save_dir, MAX_LENGTH, corpus, corpus_name, MIN_COUNT
 
 # Default word tokens
 PAD_token = 0  # Used for padding short sentences
@@ -142,9 +142,6 @@ voc, pairs = loadPrepareData(corpus, corpus_name, datafile, save_dir)
 print("\npairs:")
 for pair in pairs[:10]:
     print(pair)
-
-MIN_COUNT = 3    # Minimum word count threshold for trimming
-
 
 def trimRareWords(voc, pairs, MIN_COUNT):
     # Trim words used under the MIN_COUNT from the voc

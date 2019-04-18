@@ -25,7 +25,17 @@ def parse():
         '--evaluate',
         action='store_true',
         help="Evaluate the model")
-    parser.add_argument('-b', '--beam', type=int, default=2, help='Beam size')
+    parser.add_argument(
+        '-b',
+        '--beam',
+        type=int,
+        default=2,
+        help='Beam size')
+    parser.add_argument(
+        '-n',
+        '--name',
+        default='{}'.format(model_name),
+        help="Training name")
 
     args = parser.parse_args()
     return args
@@ -84,7 +94,8 @@ def run(args):
             save_every,
             clip,
             corpus_name,
-            loadFilename)
+            loadFilename,
+            args.name)
 
     if(args.evaluate):
 
@@ -92,17 +103,17 @@ def run(args):
         loadFilename = os.path.join(save_dir,
                                     model_name,
                                     corpus_name,
-                                    '{}-{}_{}'.format(encoder_n_layers,
+                                    '{}-{}_{}_{}'.format(encoder_n_layers,
                                                       decoder_n_layers,
-                                                      hidden_size),
+                                                      hidden_size, args.name),
                                     '{}_checkpoint.tar'.format(checkpoint_iter))
 
         # Load model if a loadFilename is provided
         if loadFilename:
             # If loading on same machine the model was trained on
-            checkpoint = torch.load(loadFilename)
+            # checkpoint = torch.load(loadFilename)
             # If loading a model trained on GPU to CPU
-            # checkpoint = torch.load(loadFilename, map_location=torch.device('cpu'))
+            checkpoint = torch.load(loadFilename, map_location=torch.device('cpu'))
             encoder_sd = checkpoint['en']
             decoder_sd = checkpoint['de']
             encoder_optimizer_sd = checkpoint['en_opt']

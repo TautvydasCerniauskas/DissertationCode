@@ -6,9 +6,11 @@ USE_CUDA = torch.cuda.is_available()
 device = torch.device("cuda" if USE_CUDA else "cpu")
 
 
+# Main encoder class implementation
 class EncoderRNN(nn.Module):
     def __init__(self, hidden_size, embedding, n_layers=1, dropout=0):
         super(EncoderRNN, self).__init__()
+
         self.n_layers = n_layers
         self.hidden_size = hidden_size
         self.embedding = embedding
@@ -23,8 +25,8 @@ class EncoderRNN(nn.Module):
 
     def forward(self, input_seq, input_lengths, hidden=None):
         # Convert word indexes to embeddings
-        embedded = self.embedding(input_seq)
-        # Pack padded batch of sequences for RNN module
+        embedded = self.embedding(input_seq)  # size=([15,64,500])
+         # Pack padded batch of sequences for RNN module
         packed = torch.nn.utils.rnn.pack_padded_sequence(
             embedded, input_lengths)
         # Forward pass through GRU
@@ -32,17 +34,12 @@ class EncoderRNN(nn.Module):
         # Unpack padding
         outputs, _ = torch.nn.utils.rnn.pad_packed_sequence(outputs)
         # Sum bidirectional GRU outputs
-        outputs = outputs[:,
-                          :,
-                          :self.hidden_size] + outputs[:,
-                                                       :,
-                                                       self.hidden_size:]
+        outputs = outputs[:,:,:self.hidden_size] + outputs[:,:,self.hidden_size:]
         # Return output and final hidden state
         return outputs, hidden
 
+
 # Luong attention layer
-
-
 class Attn(torch.nn.Module):
     def __init__(self, method, hidden_size):
         super(Attn, self).__init__()
@@ -57,13 +54,16 @@ class Attn(torch.nn.Module):
             self.attn = torch.nn.Linear(self.hidden_size * 2, hidden_size)
             self.v = torch.nn.Parameter(torch.FloatTensor(hidden_size))
 
+    # Loung first energy function
     def dot_score(self, hidden, encoder_output):
         return torch.sum(hidden * encoder_output, dim=2)
 
+    # Second energy function
     def general_score(self, hidden, encoder_output):
         energy = self.attn(encoder_output)
         return torch.sum(hidden * energy, dim=2)
 
+    # Third energy function
     def concat_score(self, hidden, encoder_output):
         energy = self.attn(
             torch.cat(

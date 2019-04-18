@@ -107,8 +107,6 @@ friends_df = pd.read_csv("data/friends_final_rdy.csv")
 friends_sentences = friends_df['line']
 
 # This is not a perfect implementation....
-
-
 def extractSentencePairsFromCsv(sentences):
     qa_pairs = []
     for count, line in enumerate(sentences):
@@ -119,12 +117,10 @@ def extractSentencePairsFromCsv(sentences):
             qa_pairs.append([inputLine, targetLine])
     return qa_pairs
 
-
 friends_pairs = extractSentencePairsFromCsv(friends_sentences)
 
+
 # This is not a perfect implementation....
-
-
 def extractSentencesFromHYMYMFile(filename):
     sentences_df = pd.read_csv(filename)
     sentences_df.dropna(subset=['Sentence'], inplace=True)
@@ -140,7 +136,6 @@ def extractSentencesFromHYMYMFile(filename):
     sentences_df['Formatted'].replace('', np.nan, inplace=True)
     sentences_df.dropna(subset=['Formatted'], inplace=True)
     return sentences_df['Formatted']
-
 
 HIMYM_sentences = extractSentencesFromHYMYMFile("data/HIMYM_sentences.csv")
 HIMYM_pairs = extractSentencePairsFromCsv(HIMYM_sentences)
