@@ -13,9 +13,9 @@ small_batch_size = 5 # Batches used to feed into Encoder
 
 # Configure models
 model_name = 'cb_model'
-attn_model = 'dot'
+# attn_model = 'dot'
 # attn_model = 'general'
-# attn_model = 'concat'
+attn_model = 'concat'
 hidden_size = 512  # Hidden size
 encoder_n_layers = 2  # Encoder number of layers
 decoder_n_layers = 2  # Encoder number of layers

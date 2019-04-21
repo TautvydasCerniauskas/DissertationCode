@@ -132,7 +132,7 @@ def run(args):
         encoder.eval()
         decoder.eval()
         # Begin chatting (uncomment and run the following line to begin)
-        evaluateInput(encoder, decoder, voc, args.beam)
+        evaluateInput(encoder, decoder, voc, args.beam, args.name)
 
 
 if __name__ == "__main__":

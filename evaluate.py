@@ -1,9 +1,11 @@
 import torch
 import random
+import os
 from train import indexesFromSentence
 from load import SOS_token, EOS_token
 from load import MAX_LENGTH, loadPrepareData, Voc, normalizeString
 from model import *
+from config import attn_model, save_dir, model_name
 
 USE_CUDA = torch.cuda.is_available()
 device = torch.device("cuda" if USE_CUDA else "cpu")
@@ -98,7 +100,6 @@ def decode(decoder, decoder_hidden, encoder_outputs,
     decoder_input = decoder_input.to(device)
 
     decoded_words = []
-    # TODO: or (MAX_LEN+1, MAX_LEN+1)
     decoder_attentions = torch.zeros(max_length, max_length)
 
     for di in range(max_length):
@@ -137,24 +138,44 @@ def evaluate(encoder, decoder, voc, sentence,
                            encoder_outputs, voc, beam_size)
 
 
-def evaluateInput(encoder, decoder, voc, beam_size):
+def evaluateInput(encoder, decoder, voc, beam_size, output_name):
     pair = ''
+    output_dir = "output"
+    directory = os.path.join(save_dir, model_name, output_dir)
+    output = os.path.join(directory, "{}_{}_{}.txt".format(beam_size, attn_model, output_name))
+
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+
     while(1):
         try:
             pair = input('> ')
             if pair == 'q':
+                with open(output, 'a') as outputfile:
+                    outputfile.write("End of utterance" + "\n")
                 break
             pair = normalizeString(pair)
             if beam_size == 1:
+                pair = pair
                 output_words, _ = evaluate(
                     encoder, decoder, voc, pair, beam_size)
                 output_sentence = ' '.join(output_words)
-                print('<', output_sentence)
+                print('< ', output_sentence)
+                with open(output, 'a') as outputfile:
+                    outputfile.write(pair + " \n")
+                    outputfile.write("<{}\n".format(output_sentence))
             else:
                 output_words_list = evaluate(
                     encoder, decoder, voc, pair, beam_size)
+                pair = pair
+                out = []
                 for output_words, score in output_words_list:
                     output_sentence = ' '.join(output_words)
-                    print("{:.3f} < {}".format(score, output_sentence))
+                    formatted_output = "{:.3f} < {}".format(score, output_sentence)
+                    out.append(formatted_output + "\n")
+                    print(formatted_output)
+                with open(output, 'a') as outputfile:
+                    outputfile.write(pair + '\n')
+                    outputfile.writelines(out)
         except KeyError:
             print("Incorrect spelling.")
