@@ -9,7 +9,7 @@ if [[ $1 = "train" ]]; then
     $PYTHON $train
 elif [[ $1 = "eval" ]]; then
     $PYTHON $eval 
-elif [[ $1 = "install" ]]
+elif [[ $1 = "install" ]]; then
     $inst
 else
     echo "Please choose between train or eval"
