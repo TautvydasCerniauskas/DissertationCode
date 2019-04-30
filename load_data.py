@@ -13,8 +13,6 @@ import re
 from config import datafile, corpus
 
 # Print first 10 lines of a passed on file
-
-
 def printLines(fileName, n=10):
     with open(fileName, 'rb') as datafile:
         lines = datafile.readlines()
@@ -28,8 +26,6 @@ printLines(os.path.join(corpus, "movie_conversations.txt"))
 
 # Splits each line of the file into a dictionary of fields(lineID,
 # characterID, movieID, character, text)
-
-
 def loadLines(fileName, fields):
     lines = {}
     with open(fileName, 'r', encoding='iso-8859-1') as f:
@@ -45,7 +41,6 @@ def loadLines(fileName, fields):
 
 
 # Load Character Metadata
-
 def loadCharacterMetadata(fileName, fields):
     characters = {}
     with open(fileName, 'r', encoding='iso-8859-1') as f:
@@ -59,8 +54,6 @@ def loadCharacterMetadata(fileName, fields):
 
 # Groups fields of lines from `loadLines` into conversations based on
 # *movie_conversations.txt*
-
-
 def loadConversations(fileName, lines, fields):
     conversations = []
     with open(fileName, 'r', encoding='iso-8859-1') as f:

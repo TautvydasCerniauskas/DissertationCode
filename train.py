@@ -8,27 +8,27 @@ import random
 import math
 import os
 import time
-from tqdm import tqdm
 
-from load import loadPrepareData, SOS_token, EOS_token, PAD_token
-from model import EncoderRNN, LuongAttnDecoderRNN
+from load import SOS_token, EOS_token, PAD_token
+from model import LuongAttnDecoderRNN
 from config import MAX_LENGTH, teacher_forcing_ratio, hidden_size, attn_model
 
 # Set CUDA variables and device settings
 USE_CUDA = torch.cuda.is_available()
 device = torch.device("cuda" if USE_CUDA else "cpu")
 
+# Check if cudda is enabled
 cudnn.benchmark = True
 
-
+# Extract indexes from sentences
 def indexesFromSentence(voc, sentence):
     return [voc.word2index[word] for word in sentence.split(' ')] + [EOS_token]
 
-
+# Pad the date with zeros
 def zeroPadding(l, fillvalue=PAD_token):
     return list(itertools.zip_longest(*l, fillvalue=fillvalue))
 
-
+# Binary Matrix for masking
 def binaryMatrix(l, value=PAD_token):
     m = []
     for i, seq in enumerate(l):
@@ -41,8 +41,6 @@ def binaryMatrix(l, value=PAD_token):
     return m
 
 # Returns padded input sequence tensor and lengths
-
-
 def inputVar(l, voc):
     indexes_batch = [indexesFromSentence(voc, sentence) for sentence in l]
     lengths = torch.tensor([len(indexes) for indexes in indexes_batch])
@@ -51,8 +49,6 @@ def inputVar(l, voc):
     return padVar, lengths
 
 # Returns padded target sequence tensor, padding mask, and max target length
-
-
 def outputVar(l, voc):
     indexes_batch = [indexesFromSentence(voc, sentence) for sentence in l]
     max_target_len = max([len(indexes) for indexes in indexes_batch])
@@ -63,8 +59,6 @@ def outputVar(l, voc):
     return padVar, mask, max_target_len
 
 # Returns all items for a given batch of pairs
-
-
 def batch2TrainData(voc, pair_batch):
     pair_batch.sort(key=lambda x: len(x[0].split(" ")), reverse=True)
     input_batch, output_batch = [], []
@@ -75,7 +69,7 @@ def batch2TrainData(voc, pair_batch):
     output, mask, max_target_len = outputVar(output_batch, voc)
     return inp, lengths, output, mask, max_target_len
 
-
+# Loss calculation function
 def maskNLLLoss(inp, target, mask):
     nTotal = mask.sum()
     crossEntropy = -torch.log(torch.gather(inp, 1,
@@ -84,7 +78,10 @@ def maskNLLLoss(inp, target, mask):
     loss = loss.to(device)
     return loss, nTotal.item()
 
-
+"""
+Main training loop
+This is where all the values are initialised and fed into Encoder and Decoder
+"""
 def train(
         input_variable, lengths, target_variable, mask, max_target_len,
     encoder, decoder, embedding, encoder_optimizer, decoder_optimizer,
@@ -163,6 +160,11 @@ def train(
     return sum(print_losses) / n_totals
 
 
+"""
+Train iteration loop
+This is where all the training happens, sentences are loaded into batches and prepared for training
+In addition, the checkpoint are saved for future or to continue training if something happens
+"""
 def trainIters(
         model_name, voc, pairs, encoder, decoder, encoder_optimizer,
         decoder_optimizer, embedding, encoder_n_layers, decoder_n_layers,

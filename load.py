@@ -79,8 +79,6 @@ def unicodeToAscii(s):
     )
 
 # Lowercase, trim, and remove non-letter characters
-
-
 def normalizeString(s):
     s = unicodeToAscii(s.lower().strip())
     s = re.sub(r"([.!?])", r" \1", s)
@@ -89,8 +87,6 @@ def normalizeString(s):
     return s
 
 # Read query/response pairs and return a voc object
-
-
 def readVocs(datafile, corpus_name):
     print("Reading lines...")
     # Read the file and split into lines
@@ -103,8 +99,6 @@ def readVocs(datafile, corpus_name):
 
 # Returns True iff both sentences in a pair 'p' are under the MAX_LENGTH
 # threshold
-
-
 def filterPair(p):
     # Input sequences need to preserve the last word for EOS token
     return len(
@@ -112,15 +106,11 @@ def filterPair(p):
         p[1].split(' ')) < MAX_LENGTH
 
 # Filter pairs using filterPair condition
-
-
 def filterPairs(pairs):
     return [pair for pair in pairs if filterPair(pair)]
 
 # Using the functions defined above, return a populated voc object and
 # pairs list
-
-
 def loadPrepareData(corpus, corpus_name, datafile, save_dir):
     print("Start preparing training data ...")
     voc, pairs = readVocs(datafile, corpus_name)
@@ -143,6 +133,7 @@ print("\npairs:")
 for pair in pairs[:10]:
     print(pair)
 
+# Trim words that appear less then MIN_COUNT in a class
 def trimRareWords(voc, pairs, MIN_COUNT):
     # Trim words used under the MIN_COUNT from the voc
     voc.trim(MIN_COUNT)

@@ -21,6 +21,7 @@ class Sentence:
         self.sentence_idxes = sentence_idxes
         self.sentence_scores = sentence_scores
 
+    # Average all the sentence score values
     def avgScore(self):
         if len(self.sentence_scores) == 0:
             raise ValueError(
@@ -28,6 +29,7 @@ class Sentence:
         # return mean of sentence_score
         return sum(self.sentence_scores) / len(self.sentence_scores)
 
+    # Add a topK sentences and return them
     def addTopk(self, topi, topv, decoder_hidden, beam_size, voc):
         topv = torch.log(topv)
         terminates, sentences = [], []
@@ -50,6 +52,7 @@ class Sentence:
                     scores))
         return terminates, sentences
 
+    # Convert the indeces into a words
     def toWordScore(self, voc):
         words = []
         for i in range(len(self.sentence_idxes)):
@@ -62,6 +65,9 @@ class Sentence:
         return (words, self.avgScore())
 
 
+"""
+Beam decoder returns top N sentences from the decoder
+"""
 def beam_decode(decoder, decoder_hidden, encoder_outputs,
                 voc, beam_size, max_length=MAX_LENGTH):
     terminal_sentences, prev_top_sentences, next_top_sentences = [], [], []
@@ -93,6 +99,10 @@ def beam_decode(decoder, decoder_hidden, encoder_outputs,
     return terminal_sentences[:n]
 
 
+"""
+Greedy decoding algorithm
+Returns words and decoder's attention, technically we can leave only to return words
+"""
 def decode(decoder, decoder_hidden, encoder_outputs,
            voc, max_length=MAX_LENGTH):
 
@@ -120,6 +130,10 @@ def decode(decoder, decoder_hidden, encoder_outputs,
     return decoded_words, decoder_attentions[:di + 1]
 
 
+"""
+Converts the input string into a tensor and passes it through the encoder
+And then checks requested beam size and runs that specific function
+"""
 def evaluate(encoder, decoder, voc, sentence,
              beam_size, max_length=MAX_LENGTH):
     indexes_batch = [indexesFromSentence(voc, sentence)]  # [1, seq_len]
@@ -138,6 +152,9 @@ def evaluate(encoder, decoder, voc, sentence,
                            encoder_outputs, voc, beam_size)
 
 
+"""
+Main function to run the evaluation and save everything into a file
+"""
 def evaluateInput(encoder, decoder, voc, beam_size, output_name):
     pair = ''
     output_dir = "output"

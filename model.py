@@ -88,6 +88,7 @@ class Attn(torch.nn.Module):
         return F.softmax(attn_energies, dim=1).unsqueeze(1)
 
 
+# Luong Attention Decoder implementation
 class LuongAttnDecoderRNN(nn.Module):
     def __init__(self, attn_model, embedding, hidden_size,
                  output_size, n_layers=1, dropout=0.1):
